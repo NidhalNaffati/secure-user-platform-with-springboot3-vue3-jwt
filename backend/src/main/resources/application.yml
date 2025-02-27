@@ -32,6 +32,11 @@ spring:
           starttls:
             enable: true
 
+  output:
+    ansi:
+      enabled: always
+
+
 # The admin username and password are used to create the admin account when the application starts.
 admin:
   username: ${ADMIN_USERNAME:admin@gmail.com}

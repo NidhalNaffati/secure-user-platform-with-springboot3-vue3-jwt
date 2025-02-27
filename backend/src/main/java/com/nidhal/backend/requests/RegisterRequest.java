@@ -33,13 +33,16 @@ public record RegisterRequest(
         Role role
 ) {
     public User toUser() {
-        return User.of(
-                firstName,
-                lastName,
-                email,
-                password,
-                confirmPassword,
-                role
-        );
+        return User.builder()
+            .firstName(firstName)
+            .lastName(lastName)
+            .email(email)
+            .password(password)
+            .confirmPassword(confirmPassword)
+            .role(role)
+            .accountNonLocked(true)
+            .enabled(false)
+            .failedAttempts(0)
+            .build();
     }
 }

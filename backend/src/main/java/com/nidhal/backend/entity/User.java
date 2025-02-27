@@ -5,7 +5,10 @@ import com.nidhal.backend.model.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
 import java.util.List;
+
+import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Getter
 @Setter
@@ -20,13 +23,7 @@ import java.util.List;
     })
 public class User {
     @Id
-    @SequenceGenerator(
-        name = "user_generator",
-        sequenceName = "user_app_seq",
-        allocationSize = 1
-    )
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_generator")
-    @Column(name = "id")
+    @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
     @Column(length = 30)
@@ -52,18 +49,29 @@ public class User {
      * the user by default is not enable, until he activates his account.
      */
     @Column(name = "enabled")
-    private boolean enabled; // by default is false, until the user activates his account via email verification.
+    private boolean enabled = false; // by default is false, until the user activates his account via email verification.
 
-    private boolean accountNonLocked; // by default is true, until the user is blocked by the admin.
+    private boolean accountNonLocked = true; // by default is true, until the user is blocked by the admin.
 
-    private int failedAttempts;
+    private int failedAttempts = 0;
+
+    private Date createdAt;
+
+    private Date updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = new Date();
+        updatedAt = new Date();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = new Date();
+    }
 
     @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
-
-    public static User of(String firstName, String lastName, String email, String password, String confirmPassword, Role role) {
-        return new User(null, firstName, lastName, email, password, confirmPassword, role, false, true, 0, null);
-    }
 
 }

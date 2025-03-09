@@ -19,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserService userService;
     private final TokenService tokenService;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     // The Authorization header is in the form of Bearer <token>. The prefix Bearer is removed to extract the token.
     private static final String AUTHORIZATION_HEADER = "Authorization";
@@ -53,10 +55,15 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
         "/api/v1/auth/register",
         "/api/v1/auth/refresh-token",
-        "/api/v1/auth/enable-user",
+        "/api/v1/auth/enable-user/**",
         "/api/v1/auth/authenticate",
         "/api/v1/auth/forgot-password",
-        "/api/v1/auth/reset-password"
+        "/api/v1/auth/reset-password",
+        // Swagger endpoints
+        "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
+        "/swagger-resources", "/swagger-resources/**",
+        "/configuration/ui", "/configuration/security",
+        "/swagger-ui/**", "/webjars/**", "/swagger-ui.html"
     );
 
     @Override
@@ -126,7 +133,8 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicEndpoint(HttpServletRequest request) {
-        return PUBLIC_ENDPOINTS.stream().anyMatch(request.getServletPath()::startsWith);
+        String path = request.getServletPath();
+        return PUBLIC_ENDPOINTS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
     private boolean isTokenValid(String jwt, UserDetailsImpl userDetails) {

@@ -1,7 +1,6 @@
 package com.nidhal.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.nidhal.backend.model.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,6 +57,7 @@ public class User {
     private Date createdAt;
 
     private Date updatedAt;
+
 
     @PrePersist
     protected void onCreate() {

@@ -10,7 +10,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import static com.nidhal.backend.model.Role.ROLE_ADMIN;
+import static com.nidhal.backend.entity.Role.ROLE_ADMIN;
 
 /**
  * Initializes the admin user if it does not already exist.

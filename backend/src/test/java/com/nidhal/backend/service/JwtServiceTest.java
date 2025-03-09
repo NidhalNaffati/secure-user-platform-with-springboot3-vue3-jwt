@@ -18,7 +18,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.Map;
 
-import static com.nidhal.backend.model.Role.ROLE_USER;
+import static com.nidhal.backend.entity.Role.ROLE_USER;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 

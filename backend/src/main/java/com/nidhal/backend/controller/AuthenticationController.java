@@ -4,7 +4,7 @@ package com.nidhal.backend.controller;
 import com.nidhal.backend.exception.EmailAlreadyExistsException;
 import com.nidhal.backend.exception.PasswordDontMatchException;
 import com.nidhal.backend.exception.UserNotFoundException;
-import com.nidhal.backend.model.EmailRequest;
+import com.nidhal.backend.requests.EmailRequest;
 import com.nidhal.backend.requests.AuthenticationRequest;
 import com.nidhal.backend.requests.AuthenticationResponse;
 import com.nidhal.backend.requests.RegisterRequest;

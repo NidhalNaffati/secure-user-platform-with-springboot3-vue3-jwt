@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import static jakarta.persistence.GenerationType.IDENTITY;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -13,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Entity
 public class Token {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = IDENTITY)
     public Long id;
 
     @Column(unique = true)

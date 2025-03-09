@@ -3,8 +3,8 @@ package com.nidhal.backend.service;
 import com.nidhal.backend.entity.User;
 import com.nidhal.backend.exception.EmailAlreadyExistsException;
 import com.nidhal.backend.exception.PasswordDontMatchException;
-import com.nidhal.backend.model.Role;
-import com.nidhal.backend.model.UserDetailsImpl;
+import com.nidhal.backend.entity.Role;
+import com.nidhal.backend.entity.UserDetailsImpl;
 import com.nidhal.backend.requests.AuthenticationRequest;
 import com.nidhal.backend.requests.AuthenticationResponse;
 import com.nidhal.backend.requests.RegisterRequest;
@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.MailSendException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 
 import java.io.PrintWriter;
 

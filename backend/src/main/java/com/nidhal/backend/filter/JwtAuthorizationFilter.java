@@ -1,6 +1,6 @@
 package com.nidhal.backend.filter;
 
-import com.nidhal.backend.model.UserDetailsImpl;
+import com.nidhal.backend.entity.UserDetailsImpl;
 import com.nidhal.backend.service.JwtService;
 import com.nidhal.backend.service.TokenService;
 import com.nidhal.backend.service.UserService;

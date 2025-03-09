@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:postgres}
-    username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -39,8 +39,8 @@ spring:
 
 # The admin username and password are used to create the admin account when the application starts.
 admin:
-  username: ${ADMIN_USERNAME:admin@gmail.com}
-  password: ${ADMIN_PASSWORD:password123}
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
 
 
 jwt:
@@ -52,4 +52,4 @@ jwt:
     enable-account: 900000
 
   # The jwt secret key is used to sign the token.
-  secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret-key: ${JWT_SECRET_KEY}

@@ -28,6 +28,79 @@ public class EmailService {
         this.senderEmail = senderEmail;
     }
 
+    @Value("${verification-code.expiration.account-activation}")
+    private int activationCodeExpirationTimeInMinutes;
+
+    @Value("${verification-code.expiration.reset-password}")
+    private int resetPasswordCodeExpirationTimeInMinutes;
+
+
+    /**
+     * Sends an activation code email to the specified user
+     *
+     * @param email     the email address of the user
+     * @param firstName the first name of the user
+     * @param code      the verification code
+     */
+    public void sendActivationCode(String email, String firstName, String code) {
+        String ACTIVATION_EMAIL_TEMPLATE = "templates/activate-account-code.html";
+        String subject = "Verify Your Account";
+
+        sendEmailWithVerificationCode(email, firstName, subject, code, ACTIVATION_EMAIL_TEMPLATE, activationCodeExpirationTimeInMinutes);
+    }
+
+    /**
+     * Sends a password reset code email to the specified user
+     *
+     * @param email     the email address of the user
+     * @param firstName the first name of the user
+     * @param code      the verification code
+     */
+    public void sendResetPasswordCode(String email, String firstName, String code) {
+        String RESET_PASSWORD_EMAIL_TEMPLATE = "templates/reset-password-code.html";
+        String subject = "Reset Your Password";
+
+        sendEmailWithVerificationCode(email, firstName, subject, code, RESET_PASSWORD_EMAIL_TEMPLATE, resetPasswordCodeExpirationTimeInMinutes);
+    }
+
+    /**
+     * Sends an email with a verification code using the specified template
+     */
+    private void sendEmailWithVerificationCode(
+        String email, String firstName, String subject,
+        String code, String template, int expirationMinutes) {
+
+        String senderName = "Spring Boot 3 Team";
+        String currentYear = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(senderEmail, senderName);
+            helper.setTo(email);
+            helper.setSubject(subject);
+
+            // Load email template from file
+            ClassPathResource resource = new ClassPathResource(template);
+            String content = new String(Files.readAllBytes(resource.getFile().toPath()));
+
+            // Replace placeholders in email template with dynamic content
+            content = content.replace("{{firstName}}", firstName);
+            content = content.replace("{{verificationCode}}", code);
+            content = content.replace("{{currentYear}}", currentYear);
+            content = content.replace("{{expirationTimeInMinutes}}", String.valueOf(expirationMinutes));
+
+            helper.setText(content, true);
+
+            javaMailSender.send(message);
+            log.info("Verification code email sent to {}", email);
+
+        } catch (MessagingException | IOException exception) {
+            log.error("Failed to send email to {}", email, exception);
+        }
+    }
+
     @Value("${jwt.expiration.enable-account}")
     long enableAccountExpirationTimeInMs;
 

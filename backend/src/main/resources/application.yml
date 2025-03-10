@@ -44,7 +44,6 @@ admin:
 
 
 jwt:
-  # different expiration time for each token
   expiration:
     access-token: 86400000          # 1 hour
     refresh-token: 604800000       # 7 days
@@ -53,3 +52,8 @@ jwt:
 
   # The jwt secret key is used to sign the token.
   secret-key: ${JWT_SECRET_KEY}
+
+verification-code:
+  expiration:
+    account-activation: 20         # 20 minutes
+    reset-password: 10            # 10 minutes

@@ -2,6 +2,7 @@ package com.nidhal.backend.service;
 
 
 import com.nidhal.backend.entity.User;
+import com.nidhal.backend.entity.VerificationCode;
 import com.nidhal.backend.exception.EmailAlreadyExistsException;
 import com.nidhal.backend.exception.PasswordDontMatchException;
 import com.nidhal.backend.requests.AuthenticationRequest;
@@ -39,6 +40,7 @@ public class AuthenticationService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final TokenService tokenService;
+    private final VerificationCodeService verificationCodeService;
 
 
     /**
@@ -57,10 +59,10 @@ public class AuthenticationService {
 
         // Attempts to authenticate the user with the provided email and password
         authenticationManager.authenticate(
-          new UsernamePasswordAuthenticationToken(
-            request.email(),
-            request.password()
-          )
+            new UsernamePasswordAuthenticationToken(
+                request.email(),
+                request.password()
+            )
         );
 
 
@@ -106,37 +108,82 @@ public class AuthenticationService {
             throw new EmailAlreadyExistsException();
         }
 
-        var jwtToken = jwtService.generateTokenForEnableAccount(registerRequest.email());
-
-        // create the link for the account activation
-        String activationLink = "http://localhost:9090/api/v1/auth/enable-user/" + jwtToken;
-
-        // Send activation link.
         try {
-            log.info("Sending activation link to user {}", registerRequest.email());
-            emailService.sendActivationLink(registerRequest.email(), registerRequest.firstName(), activationLink);
-
-            // Creates a new user based on the information in the request and saves it in the database
+            // Create the user
             User user = registerRequest.toUser();
-
             var savedUser = userService.saveUser(user);
 
-            tokenService.saveUserToken(savedUser, jwtToken);
-            log.info("User successfully registered with request {}", registerRequest);
+            // Generate a verification code
+            VerificationCode verificationCode = verificationCodeService.createVerificationCode(
+                registerRequest.email(),
+                VerificationCode.CodeType.ACCOUNT_ACTIVATION
+            );
 
+            // Send the verification code email
+            log.info("Sending activation code {} to user {}", verificationCode.getCode() ,registerRequest.email());
+
+            emailService.sendActivationCode(
+                registerRequest.email(),
+                registerRequest.firstName(),
+                verificationCode.getCode()
+            );
+
+            log.info("User successfully registered with request {}", registerRequest);
         } catch (Exception e) {
             log.error("Cannot create user with request {}", registerRequest);
             log.error("Error: {}", e.getMessage());
+            throw e;
         }
     }
 
 
-    /**
-     * Generates a JWT token with an expiration date and sends a reset password email to the user
-     * containing a link to reset their password.
-     *
-     * @param email Email address of the user.
-     */
+    public void verifyUserAccount(String email, String code) {
+        // Verify the code
+        verificationCodeService.verifyCode(email, code, VerificationCode.CodeType.ACCOUNT_ACTIVATION);
+
+        // Enable the user
+        userService.enableUser(email);
+
+        // Invalidate all activation codes for this email
+        verificationCodeService.invalidateAllCodes(email, VerificationCode.CodeType.ACCOUNT_ACTIVATION);
+    }
+
+
+    public void sendResetPasswordCodeToUser(String email) {
+        // Find user
+        var user = userService.findUserByEmail(email);
+
+        // Generate a verification code
+        VerificationCode verificationCode = verificationCodeService.createVerificationCode(
+            email,
+            VerificationCode.CodeType.PASSWORD_RESET
+        );
+
+        try {
+            log.info("Sending reset password code to user with email {}", email);
+            emailService.sendResetPasswordCode(email, user.getFirstName(), verificationCode.getCode());
+        } catch (Exception e) {
+            log.warn("Error while sending reset password code to user with email {}", email);
+            log.info("If you didn't receive the email, note that the verification code is: {}", verificationCode.getCode());
+            throw new MailSendException("Error while sending reset password code to user with email: " + email);
+        }
+
+        log.info("Reset password code sent to user with email {}", email);
+    }
+
+
+    public void resetPassword(String email, String code, String newPassword, String confirmPassword) {
+        // Verify the code
+        verificationCodeService.verifyCode(email, code, VerificationCode.CodeType.PASSWORD_RESET);
+
+        // Update the password
+        userService.updatePassword(email, newPassword, confirmPassword);
+
+        // Invalidate all password reset codes for this email
+        verificationCodeService.invalidateAllCodes(email, VerificationCode.CodeType.PASSWORD_RESET);
+    }
+
+
     public void sendResetPasswordRequestToUser(String email) {
         // If an account with the given email already exists, throws an exception
         var user = userService.findUserByEmail(email);
@@ -159,14 +206,6 @@ public class AuthenticationService {
     }
 
 
-    /**
-     * Updates the password of a user given a JWT token and a new password, and confirms that the new password matches
-     * the password confirmation.
-     *
-     * @param token           JWT token containing the user email.
-     * @param password        New password.
-     * @param passwordConfirm Confirmation of the new password.
-     */
     public void upDatePassword(String token, String password, String passwordConfirm) {
         // retrieve the email from the token
         String email = jwtService.extractUsername(token);
@@ -175,11 +214,6 @@ public class AuthenticationService {
     }
 
 
-    /**
-     * Enables a user given a JWT token.
-     *
-     * @param token JWT token containing the user email.
-     */
     public void enableUser(String token) {
         // retrieve the email from the token
         String email = jwtService.extractUsername(token);
@@ -188,12 +222,6 @@ public class AuthenticationService {
     }
 
 
-    /**
-     * Checks if the password and password confirmation match.
-     *
-     * @param registerRequest The registration details of the user.
-     * @return True if the password and password confirmation match, false otherwise.
-     */
     public boolean isPasswordAndPasswordConfirmMatches(RegisterRequest registerRequest) {
         // checks if the password and password confirm are the same
         return registerRequest.password().equals(registerRequest.confirmPassword());
@@ -255,8 +283,6 @@ public class AuthenticationService {
                 response.sendError(SC_UNAUTHORIZED, "invalid refresh token.");
             }
         }
-
-        // return the result
         return result;
     }
 }

@@ -23,6 +23,7 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.List;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -55,10 +56,11 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_ENDPOINTS = List.of(
         "/api/v1/auth/register",
         "/api/v1/auth/refresh-token",
-        "/api/v1/auth/enable-user/**",
+        "/api/v1/auth/verify-user",
         "/api/v1/auth/authenticate",
         "/api/v1/auth/forgot-password",
         "/api/v1/auth/reset-password",
+
         // Swagger endpoints
         "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
         "/swagger-resources", "/swagger-resources/**",
@@ -80,22 +82,32 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
+        log.info("Request URL: {}", request.getServletPath());
+        log.info("Request Method: {}", request.getMethod());
+        log.info("Request Headers:");
+        // print the token and extract all the data from the request
+        Enumeration<String> headerNames = request.getHeaderNames();
+        // print the headers
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            log.info("Header Name: {}", headerName);
+            log.info("Header Value: {}", request.getHeader(headerName));
+        }
+
         // Check if the Authorization header is missing or does not contain a valid JWT
         String authHeader = request.getHeader(AUTHORIZATION_HEADER);
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
-            // Handle the case where the Authorization header is missing or does not contain a valid JWT
             handleMissingToken(response, request);
             return;
         }
 
-        // Extract JWT from the Authorization header
-        String jwt = authHeader.substring(7);
         // Extract username from the JWT
+        String jwt = authHeader.substring(7);
+        // print the token and extract all the data from the request
         String username = extractUsernameFromJwt(jwt);
 
         // If username is null, it indicates an issue with the JWT.
         if (username == null) {
-            // If username is null, it indicates an issue with the JWT.
             handleInvalidToken(response);
             return;
         }
@@ -105,7 +117,6 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-
 
         // Load UserDetails from the database using the extracted username
         UserDetailsImpl userDetails = userService.loadUserByUsername(username);

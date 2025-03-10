@@ -62,6 +62,15 @@ public class RestExceptionHandler {
         return buildResponseEntity(response);
     }
 
+
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<Object> handleInvalidVerificationCodeException(InvalidVerificationCodeException exception) {
+        ErrorResponse response = new ErrorResponse();
+        response.setStatus(BAD_REQUEST);
+        response.setMessage(exception.getMessage());
+        return buildResponseEntity(response);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException exception) {
         ErrorResponse response = new ErrorResponse();
@@ -90,7 +99,7 @@ public class RestExceptionHandler {
     public ResponseEntity<Object> handleExpiredJwtException() {
         ErrorResponse response = new ErrorResponse();
         response.setStatus(REQUEST_TIMEOUT);
-        response.setMessage("Your session has expired, please login again");
+        response.setMessage("Session expired, please login again");
         return buildResponseEntity(response);
     }
 
@@ -98,7 +107,7 @@ public class RestExceptionHandler {
     public ResponseEntity<Object> handleDisabledException() {
         ErrorResponse response = new ErrorResponse();
         response.setStatus(FORBIDDEN);
-        response.setMessage("Please ensure that you have clicked on the link that was sent to your email.");
+        response.setMessage("Account is disabled");
         return buildResponseEntity(response);
     }
 

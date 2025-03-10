@@ -66,11 +66,11 @@ public class SecurityConfig {
             // set up the authorization rules
             .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
                 // allow access to the static resources to everyone
-                .requestMatchers("/api/v1/auth/register/**", "/api/v1/auth/refresh-token",
-                    "/api/v1/auth/enable-user/**", "/api/v1/auth/authenticate",
-                    "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password"
+                .requestMatchers("/api/v1/auth/register/", "/api/v1/auth/refresh-token",
+                    "/api/v1/auth/verify-user", "/api/v1/auth/authenticate",
+                    "/api/v1/auth/forgot-password", "/api/v1/auth/reset-password",
                     // swagger endpoints
-                    , "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
+                    "/v2/api-docs", "/v3/api-docs", "/v3/api-docs/**",
                     "/swagger-resources", "/swagger-resources/**",
                     "/configuration/ui", "/configuration/security",
                     "/swagger-ui/**", "/webjars/**", "/swagger-ui.html"
